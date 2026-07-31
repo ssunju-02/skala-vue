@@ -1,4 +1,7 @@
 <script setup>
+import { computed } from 'vue'
+import { useConfigStore } from '../stores/configStore'
+
 const props = defineProps({
   city: {
     type: Object,
@@ -7,6 +10,16 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['select-card', 'click-detail'])
+
+const configStore = useConfigStore()
+
+const displayTemp = computed(() => {
+  const rawTemp = props.city.temp // 기본 원본 데이터는 섭씨 숫자
+  if (configStore.unit === 'fahrenheit') {
+    return Math.round((rawTemp * 9) / 5 + 32) // 화씨 변환 연산
+  }
+  return rawTemp // 'celsius'일 때는 원본 그대로 반환
+})
 
 const onSelect = () => {
   emit('select-card', props.city.name)
@@ -23,7 +36,7 @@ const onDetail = () => {
       <span class="city-name">{{ city.name }} ({{ city.status }})</span>
       <button type="button" @click.stop="onDetail">상세보기</button>
     </div>
-    <p class="temp">현재 기온: {{ city.temp }}℃</p>
+    <p class="temp">현재 기온: {{ displayTemp }}{{ configStore.unitSymbol }}</p>
     <span v-if="city.temp >= 25" class="badge hot">🔥 더움 (25도 이상)</span>
     <span v-else class="badge cool">❄️ 선선함 (25도 미만)</span>
   </li>

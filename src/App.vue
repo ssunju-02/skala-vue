@@ -1,24 +1,35 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import UnitToggler from './components/UnitToggler.vue'
 </script>
 
 <template>
-  <nav class="assignment-nav">
-    <RouterLink to="/" exact-active-class="active">과제 1: Mockup</RouterLink>
-    <RouterLink to="/assignment2" exact-active-class="active">과제 2: 컴포지션</RouterLink>
-    <RouterLink to="/assignment3" exact-active-class="active">과제 3: 컴포넌트</RouterLink>
-    <RouterLink to="/weather" exact-active-class="active">과제 4: Router</RouterLink>
-  </nav>
+  <header class="app-header">
+    <nav class="assignment-nav">
+      <RouterLink to="/" exact-active-class="active">과제 1: Mockup</RouterLink>
+      <RouterLink to="/assignment2" exact-active-class="active">과제 2: 컴포지션</RouterLink>
+      <RouterLink to="/assignment3" exact-active-class="active">과제 3: 컴포넌트</RouterLink>
+      <RouterLink to="/weather" exact-active-class="active">과제 4: Router</RouterLink>
+    </nav>
+    <UnitToggler />
+  </header>
   <RouterView />
 </template>
 
 <style scoped>
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #dfe4f0;
+}
+
 .assignment-nav {
   display: flex;
   gap: 0.5rem;
-  justify-content: center;
-  padding: 1rem 0;
-  background: #dfe4f0;
+  flex-wrap: wrap;
 }
 
 .assignment-nav a {

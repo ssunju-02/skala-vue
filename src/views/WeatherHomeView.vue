@@ -1,20 +1,41 @@
 <script setup>
-import { ref, computed, watch, watchEffect } from 'vue'
+import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseDashboardCard from '../components/BaseDashboardCard.vue'
 import SearchBar from '../components/SearchBar.vue'
 import WeatherCard from '../components/WeatherCard.vue'
+import { cityList } from '../data/cities'
+import { fetchCurrentWeather } from '../services/weatherApi'
 
 const router = useRouter()
 
 // 모든 반응형 데이터는 WeatherHomeView가 유지한다.
-const weatherList = ref([
-  { id: 'city_01', name: '서울', temp: 28, status: '맑음' },
-  { id: 'city_02', name: '수원', temp: 24, status: '비' },
-  { id: 'city_03', name: '부산', temp: 26, status: '구름' },
-])
+const weatherList = ref([])
+const isLoading = ref(true)
+const loadError = ref(null)
 const searchQuery = ref('')
 const selectedCityInfo = ref('카드를 클릭하거나 검색해 보세요.')
+
+onMounted(async () => {
+  try {
+    weatherList.value = await Promise.all(
+      cityList.map(async (city) => {
+        const data = await fetchCurrentWeather(city.lat, city.lon)
+        return {
+          id: city.id,
+          name: city.name,
+          temp: Math.round(data.main.temp),
+          status: data.weather[0].description,
+        }
+      }),
+    )
+  } catch (error) {
+    console.error('날씨 데이터 조회 실패:', error)
+    loadError.value = '날씨 데이터를 가져오지 못했습니다. API 키를 확인해 주세요.'
+  } finally {
+    isLoading.value = false
+  }
+})
 
 const filteredWeatherList = computed(() =>
   weatherList.value.filter((city) => city.name.includes(searchQuery.value)),
@@ -61,7 +82,9 @@ watchEffect(() => {
 
       <BaseDashboardCard tone="list">
         <template #header>🏙️ 지역별 날씨 현황</template>
-        <ul v-if="filteredWeatherList.length > 0" class="weather-list">
+        <p v-if="isLoading" class="no-result">날씨 데이터를 불러오는 중입니다...</p>
+        <p v-else-if="loadError" class="no-result">{{ loadError }}</p>
+        <ul v-else-if="filteredWeatherList.length > 0" class="weather-list">
           <WeatherCard
             v-for="city in filteredWeatherList"
             :key="city.id"
