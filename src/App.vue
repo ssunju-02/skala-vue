@@ -1,85 +1,43 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
+  <nav class="assignment-nav">
+    <RouterLink to="/" exact-active-class="active">과제 1: Mockup</RouterLink>
+    <RouterLink to="/assignment2" exact-active-class="active">과제 2: 컴포지션</RouterLink>
+    <RouterLink to="/assignment3" exact-active-class="active">과제 3: 컴포넌트</RouterLink>
+    <RouterLink to="/weather" exact-active-class="active">과제 4: Router</RouterLink>
+  </nav>
   <RouterView />
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.assignment-nav {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 1rem 0;
+  background: #dfe4f0;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.assignment-nav a {
+  padding: 0.3rem 1.2rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #333;
+  background: #eceff5;
+  font-weight: bold;
+  font-size: 0.95rem;
+  white-space: nowrap;
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+.assignment-nav a:hover {
+  background: #cbd3ea;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.assignment-nav a.active {
+  background: #333;
+  color: #fff;
 }
 </style>
