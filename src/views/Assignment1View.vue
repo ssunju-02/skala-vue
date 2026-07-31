@@ -56,7 +56,7 @@ const showDetail = (cityName, status) => {
             </div>
             <p class="temp">현재 기온: {{ city.temp }}℃</p>
             <span v-if="city.temp >= 25" class="badge hot">🔥 더움 (25도 이상)</span>
-            <span v-else class="badge cool">❄️ 선선함 (25도 미만)</span>
+            <span v-else class="badge cool">💨 선선함 (25도 미만)</span>
           </li>
         </ul>
       </section>
