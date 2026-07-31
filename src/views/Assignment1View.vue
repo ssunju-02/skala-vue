@@ -78,6 +78,7 @@ const showDetail = (cityName, status) => {
 
 .weather-app {
   width: 100%;
+  max-width: 480px;
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
@@ -142,8 +143,8 @@ h2 {
 .weather-list {
   list-style: none;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
