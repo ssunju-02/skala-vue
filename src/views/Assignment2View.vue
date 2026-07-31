@@ -1,5 +1,15 @@
 <script setup>
 import { ref, computed, watch, watchEffect } from 'vue'
+import { useConfigStore } from '../stores/configStore'
+
+const configStore = useConfigStore()
+
+const getDisplayTemp = (rawTemp) => {
+  if (configStore.unit === 'fahrenheit') {
+    return Math.round((rawTemp * 9) / 5 + 32)
+  }
+  return rawTemp
+}
 
 // 1. 반응형 상태 관리
 const weatherList = ref([
@@ -73,7 +83,7 @@ watchEffect(() => {
                 상세보기
               </button>
             </div>
-            <p class="temp">현재 기온: {{ city.temp }}℃</p>
+            <p class="temp">현재 기온: {{ getDisplayTemp(city.temp) }}{{ configStore.unitSymbol }}</p>
             <span v-if="city.temp >= 25" class="badge hot">🔥 더움 (25도 이상)</span>
             <span v-else class="badge cool">❄️ 선선함 (25도 미만)</span>
           </li>
