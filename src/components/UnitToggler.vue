@@ -1,44 +1,22 @@
 <script setup>
+import { storeToRefs } from 'pinia'
 import { useConfigStore } from '../stores/configStore'
 
 const configStore = useConfigStore()
+const { unit } = storeToRefs(configStore)
 </script>
 
 <template>
-  <div class="unit-toggler">
-    <span class="unit-label">
-      날씨단위: {{ configStore.unit === 'fahrenheit' ? '화씨' : '섭씨' }}({{ configStore.unitSymbol }})
-    </span>
-    <button type="button" @click="configStore.toggleUnit">단위변경</button>
-  </div>
+  <button class="unit-toggler" type="button" :aria-label="`현재 단위 ${unit === 'celsius' ? '섭씨' : '화씨'}. ${unit === 'celsius' ? '화씨' : '섭씨'}로 변경`" :title="`현재 단위: °${unit === 'celsius' ? 'C' : 'F'}`" @click="configStore.toggleTemperatureUnit">
+    <span :class="{ active: unit === 'celsius' }">°C</span>
+    <span class="divider">/</span>
+    <span :class="{ active: unit === 'fahrenheit' }">°F</span>
+  </button>
 </template>
 
 <style scoped>
-.unit-toggler {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.unit-label {
-  font-size: 0.9rem;
-  color: #333;
-  white-space: nowrap;
-}
-
-.unit-toggler button {
-  padding: 0.4rem 0.9rem;
-  font-size: 0.9rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  background: #333;
-  color: #fff;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.unit-toggler button:hover {
-  background: #555;
-}
+.unit-toggler { display: inline-flex; align-items: center; gap: 5px; min-height: 40px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--surface); cursor: pointer; font-weight: 600; transition: border-color .2s ease, background .2s ease; }
+.unit-toggler .active { color: var(--blue-700); }
+.divider { color: var(--line); }
+.unit-toggler:hover { border-color: var(--blue-500); background: var(--blue-100); }
 </style>

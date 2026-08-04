@@ -1,183 +1,349 @@
 <script setup>
-import { ref, computed, watch, watchEffect, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import BaseDashboardCard from '../components/BaseDashboardCard.vue'
-import SearchBar from '../components/SearchBar.vue'
-import WeatherCard from '../components/WeatherCard.vue'
-import { cityList } from '../data/cities'
-import { fetchCurrentWeather } from '../services/weatherApi'
+import BaseDashboardCard from '../components/exercise/BaseDashboardCard.vue'
+import SearchBar from '../components/exercise/SearchBar.vue'
+import WeatherCard from '../components/exercise/WeatherCard.vue'
+import KoreaWeatherMap from '../components/KoreaWeatherMap.vue'
+import {
+  DEFAULT_WEATHER_LOCATIONS,
+  KOREA_CITY_DIRECTORY,
+  fetchCurrentWeather,
+  getWeatherErrorMessage,
+} from '../services/weatherApi'
+import { useFavoritesStore } from '../stores/favoritesStore'
+
+const MAX_SEARCH_RESULTS = 20
+const SEARCH_DEBOUNCE_MS = 350
 
 const router = useRouter()
+const favoritesStore = useFavoritesStore()
 
-// 모든 반응형 데이터는 WeatherHomeView가 유지한다.
 const weatherList = ref([])
 const isLoading = ref(true)
-const loadError = ref(null)
-const searchQuery = ref('')
-const selectedCityInfo = ref('카드를 클릭하거나 검색해 보세요.')
+const loadError = ref('')
+const isSearchingMore = ref(false)
 
-onMounted(async () => {
-  try {
-    weatherList.value = await Promise.all(
-      cityList.map(async (city) => {
-        const data = await fetchCurrentWeather(city.lat, city.lon)
-        return {
-          id: city.id,
-          name: city.name,
-          temp: Math.round(data.main.temp),
-          status: data.weather[0].description,
-        }
-      }),
-    )
-  } catch (error) {
-    console.error('날씨 데이터 조회 실패:', error)
-    loadError.value = '날씨 데이터를 가져오지 못했습니다. API 키를 확인해 주세요.'
-  } finally {
-    isLoading.value = false
-  }
+const searchQuery = ref('')
+const selectedCityInfo = ref(null)
+document.title = '지역별 날씨 현황 | SKALA Weather'
+
+const filteredWeatherList = computed(() => {
+  const query = searchQuery.value.trim()
+  const matched = query
+    ? weatherList.value.filter((weather) => weather.name.includes(query))
+    : weatherList.value
+
+  return [...matched].sort((a, b) => {
+    const aIndex = favoritesStore.favoriteIds.indexOf(a.id)
+    const bIndex = favoritesStore.favoriteIds.indexOf(b.id)
+    if (aIndex === -1 && bIndex === -1) return 0
+    if (aIndex === -1) return 1
+    if (bIndex === -1) return -1
+    return aIndex - bIndex
+  })
 })
 
-const filteredWeatherList = computed(() =>
-  weatherList.value.filter((city) => city.name.includes(searchQuery.value)),
+const selectedMessage = computed(() =>
+  selectedCityInfo.value
+    ? `${selectedCityInfo.value.name}이 선택되었습니다.`
+    : '지역을 선택하면 여기에 표시됩니다.',
 )
 
-const onUpdateQuery = (value) => {
-  searchQuery.value = value
-}
-
-const selectCity = (cityName) => {
-  selectedCityInfo.value = `${cityName}이 선택되었습니다.`
-}
-
-const showDetail = (cityName) => {
-  const city = weatherList.value.find((item) => item.name === cityName)
-  if (city) {
-    router.push('/weather/' + city.id)
+watch(selectedCityInfo, (cityInfo) => {
+  if (cityInfo) {
+    console.log('상태바 문구가 변경되었습니다:', selectedMessage.value)
   }
-}
-
-watch(selectedCityInfo, (newValue) => {
-  console.log(`[watch 감지] 상태 바 문구가 업데이트되었습니다 -> "${newValue}"`)
 })
 
-watchEffect(() => {
-  console.log(
-    `[watchEffect 자동 호출] 현재 검색어 '${searchQuery.value}'에 매칭되는 API 데이터를 필터링 중입니다`,
-  )
+const updateSearchQuery = (query) => {
+  searchQuery.value = query
+}
+
+const selectCity = (city) => {
+  selectedCityInfo.value = city
+}
+
+const showDetail = (city) => {
+  router.push(`/weather/${city.id}`)
+}
+
+const loadWeather = async () => {
+  isLoading.value = true
+  loadError.value = ''
+  const results = await Promise.allSettled(DEFAULT_WEATHER_LOCATIONS.map(fetchCurrentWeather))
+  weatherList.value = results.filter(({ status }) => status === 'fulfilled').map(({ value }) => value)
+  const failed = results.find(({ status }) => status === 'rejected')
+  if (failed) loadError.value = getWeatherErrorMessage(failed.reason)
+  isLoading.value = false
+}
+
+onMounted(loadWeather)
+
+let searchTimer = null
+
+const searchMoreCities = async (query) => {
+  const loadedIds = new Set(weatherList.value.map((item) => item.id))
+  const matches = KOREA_CITY_DIRECTORY
+    .filter((city) => city.name.includes(query) && !loadedIds.has(city.id))
+    .slice(0, MAX_SEARCH_RESULTS)
+
+  if (!matches.length) return
+
+  isSearchingMore.value = true
+  const results = await Promise.allSettled(matches.map(fetchCurrentWeather))
+  const fetched = results.filter(({ status }) => status === 'fulfilled').map(({ value }) => value)
+  weatherList.value = [...weatherList.value, ...fetched]
+  isSearchingMore.value = false
+}
+
+watch(searchQuery, (query) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  const trimmed = query.trim()
+  if (!trimmed) return
+  searchTimer = setTimeout(() => searchMoreCities(trimmed), SEARCH_DEBOUNCE_MS)
 })
 </script>
 
 <template>
-  <div class="page">
-    <div class="weather-app">
-      <h1><span class="title-icon">🧭</span> 과제 4: 날씨 (Router)</h1>
+  <main class="weather-page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">TODAY'S WEATHER</p>
+        <h1>지역별 날씨 현황</h1>
+        <p class="hero-description">오늘 우리 도시의 날씨를 한눈에 확인해 보세요.</p>
+      </div>
+      <div class="hero-symbol" aria-hidden="true">🌤️</div>
+    </header>
 
-      <RouterLink to="/weather/about" class="about-link">서비스 소개 보기</RouterLink>
+    <BaseDashboardCard>
+      <section class="weather-section" aria-labelledby="weather-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">CITY FORECAST</p>
+            <h2 id="weather-title">오늘의 날씨</h2>
+          </div>
+          <span class="city-count">총 {{ filteredWeatherList.length }}개 도시</span>
+        </div>
 
-      <BaseDashboardCard tone="search">
-        <template #header>🔍 도시 검색 (한글 즉시 동기화)</template>
-        <SearchBar :search-query="searchQuery" @update-query="onUpdateQuery" />
-        <p class="search-result">검색 중인 도시: {{ searchQuery }}</p>
-      </BaseDashboardCard>
+        <div class="weather-search">
+          <SearchBar :search-query="searchQuery" @update-query="updateSearchQuery" />
+          <p v-if="isSearchingMore" class="search-status" role="status">전국에서 더 찾아보는 중…</p>
+        </div>
 
-      <BaseDashboardCard tone="list">
-        <template #header>🏙️ 지역별 날씨 현황</template>
-        <p v-if="isLoading" class="no-result">날씨 데이터를 불러오는 중입니다...</p>
-        <p v-else-if="loadError" class="no-result">{{ loadError }}</p>
-        <ul v-else-if="filteredWeatherList.length > 0" class="weather-list">
+        <p v-if="isLoading" class="state-message" role="status">실시간 날씨를 불러오는 중입니다…</p>
+        <div v-else-if="filteredWeatherList.length" class="weather-grid">
           <WeatherCard
-            v-for="city in filteredWeatherList"
-            :key="city.id"
-            :city="city"
+            v-for="weather in filteredWeatherList"
+            :key="weather.id"
+            :weather="weather"
+            :selected="selectedCityInfo?.id === weather.id"
             @select-card="selectCity"
             @click-detail="showDetail"
           />
-        </ul>
-        <p v-else class="no-result">검색 결과가 일치하는 도시가 없습니다.</p>
-      </BaseDashboardCard>
+        </div>
+        <div v-else-if="loadError" class="error-result" role="alert">
+          <p>{{ loadError }}</p>
+          <button type="button" @click="loadWeather">다시 시도</button>
+        </div>
+        <p v-else class="empty-result" role="status">
+          검색 결과와 일치하는 도시가 없습니다.
+        </p>
+        <p v-if="loadError && weatherList.length" class="partial-error" role="status">일부 도시 정보를 불러오지 못했습니다.</p>
+      </section>
+    </BaseDashboardCard>
 
-      <div class="status-bar">{{ selectedCityInfo }}</div>
-    </div>
-  </div>
+    <KoreaWeatherMap />
+
+    <aside class="status-bar" aria-live="polite">
+      <span class="status-dot" aria-hidden="true"></span>
+      {{ selectedMessage }}
+    </aside>
+  </main>
 </template>
 
 <style scoped>
-.page {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
-  background: #eef1f8;
+.weather-page {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 56px 0 64px;
 }
 
-.weather-app {
-  width: 100%;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-  padding: 2.5rem;
-  font-family: sans-serif;
-  color: #222;
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 40px;
+  color: var(--ink);
+}
+
+.eyebrow {
+  margin: 0 0 9px;
+  color: var(--blue-700);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
 }
 
 h1 {
-  font-size: 1.6rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  margin-bottom: 12px;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+  font-weight: 700;
 }
 
-.title-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 50%;
-  background: #dbe7ff;
-  font-size: 1.2rem;
+.hero-description {
+  margin-bottom: 0;
+  font-size: 1.05rem;
+  color: var(--muted);
 }
 
-.about-link {
-  display: inline-block;
-  margin-bottom: 1.5rem;
-  color: #3b5bdb;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.about-link:hover {
-  text-decoration: underline;
-}
-
-.search-result {
-  margin-top: 0.6rem;
-  font-size: 0.95rem;
-  color: #555;
-}
-
-.weather-list {
-  list-style: none;
-  padding: 0;
+.hero-symbol {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+  width: 100px;
+  height: 100px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  place-items: center;
+  font-size: 3.4rem;
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
-.no-result {
-  text-align: center;
-  padding: 1.5rem 0;
-  color: #777;
+.weather-section {
+  width: 100%;
 }
+
+.weather-search {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.search-status {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.section-heading h2 {
+  margin-bottom: 0;
+  font-size: 1.8rem;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+}
+
+.city-count {
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--blue-700);
+  background: var(--blue-100);
+}
+
+.weather-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.empty-result {
+  margin: 0;
+  padding: 42px 24px;
+  border: 1px dashed var(--line);
+  border-radius: 20px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.state-message,
+.error-result {
+  margin: 0;
+  padding: 42px 24px;
+  border: 1px dashed var(--line);
+  border-radius: 20px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.error-result { border-color: #f0c4c0; color: #b3453d; background: #fff5f4; }
+.error-result p { margin-bottom: 14px; }
+.error-result button { padding: 9px 16px; border: 0; border-radius: 999px; color: #fff; background: var(--blue-700); font-weight: 600; }
+.partial-error { margin: 14px 0 0; color: #a17a4e; font-size: .8rem; }
 
 .status-bar {
-  padding: 0.8rem 1rem;
-  border-radius: 10px;
-  background: #e6f6ea;
-  color: #2e7d32;
-  text-align: center;
-  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 15px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #34a670;
+  box-shadow: 0 0 0 5px rgba(52, 166, 112, 0.13);
+}
+
+@media (max-width: 820px) {
+  .weather-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-symbol {
+    width: 96px;
+    height: 96px;
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .weather-page {
+    width: min(100% - 24px, 1120px);
+    padding-top: 32px;
+  }
+
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding-bottom: 28px;
+  }
+
+  .hero-symbol {
+    display: none;
+  }
+
+  .hero-description {
+    font-size: 0.92rem;
+  }
+
+  .weather-grid { grid-template-columns: 1fr; }
+  .section-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
 }
 </style>

@@ -27,6 +27,7 @@ jobs:
       - run: npm run build
         env:
           VITE_OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          VITE_FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
       # Vue Router history 모드를 GitHub Pages(정적 호스팅)에서 새로고침/직접 접근해도
       # 동작하도록 index.html을 404.html로도 복사한다.
       - run: cp dist/index.html dist/404.html
