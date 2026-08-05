@@ -10,7 +10,7 @@ const cityDefinition = computed(() => ALL_WEATHER_LOCATIONS.find((item) => item.
 const city = ref(null)
 const isLoading = ref(true)
 const loadError = ref('')
-document.title = '날씨 상세 | SKALA Weather'
+document.title = '날씨 상세 | 오늘, 브리핑'
 
 const formatTime = (timestamp) => timestamp
   ? new Intl.DateTimeFormat('ko-KR', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' }).format(new Date(timestamp * 1000))
@@ -110,11 +110,11 @@ h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -.045em; fo
 .temperature small { margin-left: 4px; font-size: 1.2rem; color: var(--muted); }
 .status { margin: 0; color: var(--muted); }
 .back-link { display: inline-block; padding: 12px 20px; border-radius: 999px; color: #fff; background: var(--blue-700); text-decoration: none; font-weight: 600; transition: background .2s ease; }
-.back-link:hover { background: #0068d9; }
+.back-link:hover { background: var(--blue-700-hover); }
 .error-message { color: #b3453d; }
 .retry-button { margin: 10px 10px 24px 0; padding: 11px 18px; border: 0; border-radius: 999px; color: #fff; background: var(--blue-700); font-weight: 600; }
 .detail-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 24px 0 28px; }
-.detail-metrics div { padding: 16px; border-radius: 14px; background: #f5f5f7; }
+.detail-metrics div { padding: 16px; border-radius: 14px; background: var(--soft); }
 .detail-metrics dt { margin-bottom: 6px; color: var(--muted); font-size: .72rem; }
 .detail-metrics dd { margin: 0; color: var(--ink); font-size: 1.05rem; font-weight: 700; }
 .detail-metrics small { display: block; margin-top: 4px; color: var(--muted); font-size: .66rem; }
@@ -125,7 +125,7 @@ h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -.045em; fo
 .environment-grid div:last-child { border-right: 0; }
 .environment-grid span { color: var(--muted); font-size: .7rem; }
 .environment-grid strong { color: var(--ink); font-size: .86rem; font-weight: 600; }
-.sun-section { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; margin-top: 20px; padding: 16px 18px; border-radius: 14px; background: #f5f5f7; }
+.sun-section { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; margin-top: 20px; padding: 16px 18px; border-radius: 14px; background: var(--soft); }
 .sun-section > div:not(.daylight-line) { display: flex; align-items: center; gap: 9px; }
 .sun-section > div > span { color: #e39145; font-size: 1.3rem; font-weight: 700; }
 .sun-section > div:last-child > span { color: var(--blue-700); }

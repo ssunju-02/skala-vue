@@ -5,6 +5,7 @@ import BaseDashboardCard from '../components/exercise/BaseDashboardCard.vue'
 import SearchBar from '../components/exercise/SearchBar.vue'
 import WeatherCard from '../components/exercise/WeatherCard.vue'
 import KoreaWeatherMap from '../components/KoreaWeatherMap.vue'
+import heroImage from '../assets/images/hero-waves.jpg'
 import {
   DEFAULT_WEATHER_LOCATIONS,
   KOREA_CITY_DIRECTORY,
@@ -26,7 +27,8 @@ const isSearchingMore = ref(false)
 
 const searchQuery = ref('')
 const selectedCityInfo = ref(null)
-document.title = '지역별 날씨 현황 | SKALA Weather'
+document.title = '지역별 날씨 현황 | 오늘, 브리핑'
+const heroImageStyle = `url(${heroImage})`
 
 const filteredWeatherList = computed(() => {
   const query = searchQuery.value.trim()
@@ -108,14 +110,18 @@ watch(searchQuery, (query) => {
 <template>
   <main class="weather-page">
     <header class="hero">
-      <div>
+      <div class="hero-media" aria-hidden="true"></div>
+      <div class="hero-scrim" aria-hidden="true"></div>
+      <div class="hero-symbol" aria-hidden="true">🌤️</div>
+      <div class="hero-inner">
         <p class="eyebrow">TODAY'S WEATHER</p>
         <h1>지역별 날씨 현황</h1>
         <p class="hero-description">오늘 우리 도시의 날씨를 한눈에 확인해 보세요.</p>
+        <p class="hero-hint"><span aria-hidden="true">☆</span> 자주 확인하는 도시는 별 아이콘을 눌러 즐겨찾기에 추가해 보세요. 통합 홈에서 바로 모아볼 수 있어요.</p>
       </div>
-      <div class="hero-symbol" aria-hidden="true">🌤️</div>
     </header>
 
+    <div class="page-inner">
     <BaseDashboardCard>
       <section class="weather-section" aria-labelledby="weather-title">
         <div class="section-heading">
@@ -159,22 +165,49 @@ watch(searchQuery, (query) => {
       <span class="status-dot" aria-hidden="true"></span>
       {{ selectedMessage }}
     </aside>
+    </div>
   </main>
 </template>
 
 <style scoped>
 .weather-page {
+  width: 100%;
+  padding-bottom: 64px;
+}
+
+.page-inner {
   width: min(1120px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 56px 0 64px;
+  padding-top: 32px;
 }
 
 .hero {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0 40px;
-  color: var(--ink);
+  align-items: flex-end;
+  min-height: 340px;
+  overflow: hidden;
+}
+
+.hero-media {
+  position: absolute;
+  inset: 0;
+  background-image: v-bind(heroImageStyle);
+  background-position: center 55%;
+  background-size: cover;
+}
+
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 13, 9, .02) 0%, rgba(15, 13, 9, .28) 65%, rgba(15, 13, 9, .48) 100%);
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 0 max(20px, calc((100% - 1120px) / 2)) 44px;
 }
 
 .eyebrow {
@@ -185,6 +218,10 @@ watch(searchQuery, (query) => {
   letter-spacing: 0.16em;
 }
 
+.hero-inner .eyebrow {
+  color: rgba(255, 255, 255, .85);
+}
+
 h1,
 h2,
 p {
@@ -193,6 +230,7 @@ p {
 
 h1 {
   margin-bottom: 12px;
+  color: #fff;
   font-size: clamp(2rem, 5vw, 3.4rem);
   line-height: 1.1;
   letter-spacing: -0.045em;
@@ -201,20 +239,40 @@ h1 {
 
 .hero-description {
   margin-bottom: 0;
+  color: rgba(255, 255, 255, .85);
   font-size: 1.05rem;
-  color: var(--muted);
+}
+
+.hero-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(255, 255, 255, .12);
+  backdrop-filter: blur(6px);
+  font-size: .82rem;
+  font-weight: 600;
 }
 
 .hero-symbol {
+  position: absolute;
+  top: 28px;
+  right: max(20px, calc((100% - 1120px) / 2));
+  z-index: 1;
   display: grid;
-  width: 100px;
-  height: 100px;
+  width: 84px;
+  height: 84px;
   flex: 0 0 auto;
-  border: 1px solid var(--line);
+  border: 1px dashed rgba(255, 255, 255, .55);
   border-radius: 22px;
   place-items: center;
-  font-size: 3.4rem;
-  background: var(--surface);
+  font-size: 2.8rem;
+  background: rgba(255, 255, 255, .1);
+  backdrop-filter: blur(6px);
   box-shadow: var(--shadow);
 }
 
@@ -323,16 +381,12 @@ h1 {
 }
 
 @media (max-width: 560px) {
-  .weather-page {
+  .page-inner {
     width: min(100% - 24px, 1120px);
-    padding-top: 32px;
   }
 
   .hero {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-    padding-bottom: 28px;
+    min-height: 260px;
   }
 
   .hero-symbol {

@@ -1,10 +1,11 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { STOCK_MARKETS, fetchStockSeries } from '../services/stockApi'
 import { TAROT_CARDS } from '../data/tarotCards'
 import { BOOK_QUOTES } from '../data/bookQuotes'
 import { useConfigStore } from '../stores/configStore'
 import { useFavoritesStore } from '../stores/favoritesStore'
+import heroImage from '../assets/images/hero-ocean.jpg'
 import {
   ALL_WEATHER_LOCATIONS,
   fetchCurrentWeather,
@@ -13,7 +14,7 @@ import {
   WEATHER_CITIES,
 } from '../services/weatherApi'
 
-document.title = '오늘의 브리핑 | SKALA Weather'
+document.title = '오늘, 브리핑'
 const configStore = useConfigStore()
 const favoritesStore = useFavoritesStore()
 
@@ -27,6 +28,8 @@ const weather = ref([])
 const isWeatherLoading = ref(true)
 const weatherError = ref('')
 const heroWeather = computed(() => weather.value.find(({ id }) => id === 'city_01') ?? weather.value[0])
+const heroHeadlineFallback = computed(() => (isWeatherLoading.value ? '서울 날씨를 불러오는 중' : '날씨 정보를 불러오지 못했습니다'))
+const heroImageStyle = `url(${heroImage})`
 const weatherIcon = {
   맑음: '☀️',
   비: '🌧️',
@@ -113,31 +116,63 @@ const resetCard = () => {
   todayCard.value = null
 }
 
-const todayQuote = ref(BOOK_QUOTES[Math.floor(Math.random() * BOOK_QUOTES.length)])
+const getQuoteIndexForToday = () => {
+  const now = new Date()
+  const localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  return Math.floor(localMidnight / 86400000) % BOOK_QUOTES.length
+}
+
+const todayQuote = ref(BOOK_QUOTES[getQuoteIndexForToday()])
+
+let quoteRefreshTimer
+onMounted(() => {
+  quoteRefreshTimer = setInterval(() => {
+    todayQuote.value = BOOK_QUOTES[getQuoteIndexForToday()]
+  }, 60 * 1000)
+})
+onUnmounted(() => clearInterval(quoteRefreshTimer))
 </script>
 
 <template>
   <main class="dashboard-page">
     <header class="dashboard-hero">
-      <div>
+      <div class="hero-media" aria-hidden="true"></div>
+      <div class="hero-scrim" aria-hidden="true"></div>
+      <div class="hero-seal" aria-hidden="true">
+        <span class="hero-seal-top">오늘,</span>
+        <span class="hero-seal-icon">{{ heroWeather ? (weatherIcon[heroWeather.status] ?? '🌤️') : '☀️' }}</span>
+        <span class="hero-seal-bottom">브리핑</span>
+      </div>
+      <div class="hero-inner">
         <p class="date-label">{{ today }}</p>
-        <h1>오늘 필요한 정보만<br><span>가볍게 확인하세요.</span></h1>
+        <h1 v-if="heroWeather">현재 {{ heroWeather.name }}의<br><span>체감온도는 {{ configStore.formatTemperature(heroWeather.feelsLike) }}</span></h1>
+        <h1 v-else>{{ heroHeadlineFallback }}</h1>
         <p class="hero-copy">뉴스와 날씨, 주요 시세를 한 화면에 모았습니다.</p>
-      </div>
-      <div v-if="heroWeather" class="hero-weather" :aria-label="`${heroWeather.name} 현재 날씨 ${heroWeather.status}, ${configStore.formatTemperature(heroWeather.temp)}`">
-        <span class="sun" aria-hidden="true">{{ weatherIcon[heroWeather.status] ?? '🌤️' }}</span>
-        <div><strong>{{ configStore.formatTemperature(heroWeather.temp) }}</strong><span>{{ heroWeather.name }} · {{ heroWeather.description }}</span></div>
-      </div>
-      <div v-else class="hero-weather hero-weather-state" role="status">
-        {{ isWeatherLoading ? '서울 날씨를 불러오는 중…' : '날씨 정보 없음' }}
       </div>
     </header>
 
-    <section class="quick-strip" aria-label="오늘의 핵심 정보">
-      <div><span class="quick-dot weather-dot" aria-hidden="true"></span><span>{{ heroWeather?.name ?? '서울' }}</span><strong>{{ heroWeather ? `${configStore.formatTemperature(heroWeather.temp)} ${heroWeather.status}` : '—' }}</strong></div>
-      <div><span class="quick-dot air-dot" aria-hidden="true"></span><span>공기질</span><strong>{{ heroWeather ? getAirQualityLevel(heroWeather.airQualityIndex) : '—' }}</strong></div>
-      <div><span class="quick-dot market-dot" aria-hidden="true"></span><span>{{ stocks[0].symbol }}</span><strong :class="stocks[0].up === false ? 'negative' : 'positive'">{{ stocks[0].change }}</strong></div>
-      <div><span class="quick-dot rain-dot" aria-hidden="true"></span><span>최근 강수</span><strong>{{ heroWeather ? `${heroWeather.precipitation.toFixed(1)} mm` : '—' }}</strong></div>
+    <div class="page-inner">
+    <section class="score-strip" aria-label="오늘의 핵심 정보">
+      <div class="score-item">
+        <span class="score-ring" aria-hidden="true">{{ heroWeather ? (weatherIcon[heroWeather.status] ?? '🌤️') : '🌡️' }}</span>
+        <p class="score-label">{{ heroWeather?.name ?? '서울' }}</p>
+        <strong class="score-value">{{ heroWeather ? `${configStore.formatTemperature(heroWeather.temp)} ${heroWeather.status}` : '—' }}</strong>
+      </div>
+      <div class="score-item">
+        <span class="score-ring" aria-hidden="true">🍃</span>
+        <p class="score-label">공기질</p>
+        <strong class="score-value">{{ heroWeather ? getAirQualityLevel(heroWeather.airQualityIndex) : '—' }}</strong>
+      </div>
+      <div class="score-item">
+        <span class="score-ring" aria-hidden="true">📈</span>
+        <p class="score-label">{{ stocks[0].symbol }}</p>
+        <strong class="score-value" :class="stocks[0].up === false ? 'negative' : 'positive'">{{ stocks[0].change }}</strong>
+      </div>
+      <div class="score-item">
+        <span class="score-ring" aria-hidden="true">☔</span>
+        <p class="score-label">최근 강수</p>
+        <strong class="score-value">{{ heroWeather ? `${heroWeather.precipitation.toFixed(1)} mm` : '—' }}</strong>
+      </div>
     </section>
 
     <div class="dashboard-grid">
@@ -154,7 +189,22 @@ const todayQuote = ref(BOOK_QUOTES[Math.floor(Math.random() * BOOK_QUOTES.length
               class="tarot-back"
               aria-label="타로 카드 뽑기"
               @click="drawCard"
-            >✦</button>
+            >
+              <svg viewBox="0 0 62 92" class="tarot-back-art" aria-hidden="true">
+                <rect x="4" y="4" width="54" height="84" rx="9" fill="none" stroke="currentColor" stroke-width="1.1" />
+                <rect x="8.5" y="8.5" width="45" height="75" rx="6" fill="none" stroke="currentColor" stroke-width=".6" opacity=".65" />
+                <rect x="29.3" y="11.3" width="3.4" height="3.4" fill="currentColor" transform="rotate(45 31 13)" />
+                <rect x="29.3" y="75.3" width="3.4" height="3.4" fill="currentColor" transform="rotate(45 31 77)" />
+                <rect x="10.6" y="11.6" width="2.8" height="2.8" fill="currentColor" opacity=".75" transform="rotate(45 12 13)" />
+                <rect x="47.6" y="11.6" width="2.8" height="2.8" fill="currentColor" opacity=".75" transform="rotate(45 49 13)" />
+                <rect x="10.6" y="75.6" width="2.8" height="2.8" fill="currentColor" opacity=".75" transform="rotate(45 12 77)" />
+                <rect x="47.6" y="75.6" width="2.8" height="2.8" fill="currentColor" opacity=".75" transform="rotate(45 49 77)" />
+                <line x1="31" y1="21" x2="31" y2="69" stroke="currentColor" stroke-width=".8" opacity=".85" />
+                <circle cx="31" cy="33" r="4.2" fill="none" stroke="currentColor" stroke-width=".8" opacity=".9" />
+                <circle cx="31" cy="46" r="3.4" fill="currentColor" />
+                <circle cx="31" cy="59" r="4.2" fill="none" stroke="currentColor" stroke-width=".8" opacity=".9" />
+              </svg>
+            </button>
           </div>
           <template v-else>
             <div class="tarot-card">
@@ -240,32 +290,47 @@ const todayQuote = ref(BOOK_QUOTES[Math.floor(Math.random() * BOOK_QUOTES.length
         <RouterLink to="/weather">날씨 페이지에서 ☆ 버튼을 눌러 추가해보세요.</RouterLink>
       </div>
     </section>
+    </div>
   </main>
 </template>
 
 <style scoped>
-.dashboard-page { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 56px 0 72px; }
-.dashboard-hero { display: flex; align-items: center; justify-content: space-between; gap: 40px; padding: 0 0 32px; }
-.date-label { margin: 0 0 14px; color: var(--muted); font-size: .82rem; font-weight: 600; }
-.dashboard-hero h1 { margin: 0; color: var(--ink); font-size: clamp(2.25rem, 5vw, 4rem); line-height: 1.08; letter-spacing: -.045em; font-weight: 700; }
-.dashboard-hero h1 span { color: var(--blue-700); }
-.hero-copy { margin: 18px 0 0; color: var(--muted); font-size: 1.05rem; }
-.hero-weather { position: relative; display: flex; align-items: center; min-width: 250px; gap: 20px; padding: 26px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow); }
-.sun { display: grid; width: 64px; height: 64px; border-radius: 50%; place-items: center; background: var(--blue-100); font-size: 2.3rem; }
-.hero-weather div { display: grid; }
-.hero-weather strong { color: var(--ink); font-size: 2.3rem; line-height: 1; letter-spacing: -.03em; }
-.hero-weather span:last-child { margin-top: 8px; color: var(--muted); font-size: .84rem; }
-.hero-weather-state { align-items: center; justify-content: center; color: var(--muted); font-size: .8rem; }
-.quick-strip { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 0 20px; padding: 18px 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
-.quick-strip > div { display: flex; align-items: center; gap: 8px; padding: 0 20px; border-right: 1px solid var(--line); }
-.quick-strip > div:first-child { padding-left: 0; }
-.quick-strip > div:last-child { padding-right: 0; border-right: 0; }
-.quick-strip span:not(.quick-dot) { color: var(--muted); font-size: .76rem; }
-.quick-strip strong { margin-left: auto; color: var(--ink); font-size: .82rem; }
-.quick-strip .positive { color: #1a8f5c; }
-.quick-strip .negative { color: #e0453c; }
-.quick-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--blue-500); }
-.air-dot { background: #34a670; }.market-dot { background: #f0a13a; }.rain-dot { background: #8b7ce8; }
+.dashboard-page { width: 100%; padding-bottom: 72px; }
+.page-inner { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding-top: 32px; }
+.dashboard-hero { position: relative; display: flex; align-items: flex-end; min-height: 460px; overflow: hidden; }
+.hero-media { position: absolute; inset: 0; background-image: v-bind(heroImageStyle); background-position: center 60%; background-size: cover; }
+.hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15, 13, 9, .1) 0%, rgba(15, 13, 9, .55) 70%, rgba(15, 13, 9, .78) 100%); }
+.hero-seal {
+  position: absolute;
+  top: 32px;
+  right: max(20px, calc((100% - 1120px) / 2));
+  z-index: 1;
+  display: grid;
+  width: 108px;
+  height: 108px;
+  gap: 2px;
+  place-items: center;
+  border: 1px dashed rgba(255, 255, 255, .55);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, .08);
+  backdrop-filter: blur(6px);
+  transform: rotate(-8deg);
+}
+.hero-seal-top, .hero-seal-bottom { font-size: .58rem; font-weight: 700; letter-spacing: .18em; }
+.hero-seal-icon { margin: 2px 0; font-size: 1.7rem; }
+.hero-inner { position: relative; z-index: 1; width: 100%; padding: 0 max(20px, calc((100% - 1120px) / 2)) 56px; }
+.date-label { margin: 0 0 14px; color: rgba(255, 255, 255, .78); font-size: .82rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.dashboard-hero h1 { max-width: 760px; margin: 0; color: #fff; font-size: clamp(2.4rem, 6vw, 4.6rem); line-height: 1.05; letter-spacing: -.045em; font-weight: 800; }
+.hero-copy { max-width: 480px; margin: 20px 0 0; color: rgba(255, 255, 255, .82); font-size: 1.05rem; }
+.score-strip { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 0 20px; padding: 28px 10px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.score-item { display: grid; justify-items: center; gap: 10px; padding: 0 16px; border-right: 1px solid var(--line); text-align: center; }
+.score-item:last-child { border-right: 0; }
+.score-ring { display: grid; width: 46px; height: 46px; border: 1px solid var(--line); border-radius: 50%; place-items: center; background: var(--blue-100); font-size: 1.3rem; }
+.score-label { margin: 0; color: var(--muted); font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.score-value { color: var(--ink); font-size: 1rem; font-weight: 700; letter-spacing: -.01em; }
+.score-value.positive { color: #1a8f5c; }
+.score-value.negative { color: #e0453c; }
 .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.42fr) minmax(340px, .9fr); gap: 20px; }
 .panel { border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow); }
 .news-panel { padding: 30px 32px; }
@@ -300,17 +365,18 @@ const todayQuote = ref(BOOK_QUOTES[Math.floor(Math.random() * BOOK_QUOTES.length
   height: 92px;
   flex: 0 0 auto;
   margin-left: -18px;
-  border: 1px solid rgba(255, 255, 255, .35);
+  border: none;
   border-radius: 10px;
   place-items: center;
-  color: rgba(255, 255, 255, .85);
-  background: linear-gradient(160deg, var(--blue-700), var(--blue-500));
-  box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
-  font-size: 1.2rem;
+  padding: 0;
+  color: #d9b877;
+  background: linear-gradient(160deg, #271738, #150c1f);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .32);
   transition: transform .2s ease, box-shadow .2s ease;
 }
+.tarot-back-art { width: 100%; height: 100%; }
 .tarot-back:first-child { margin-left: 0; }
-.tarot-back:hover { z-index: 1; box-shadow: 0 12px 22px rgba(0, 0, 0, .18); }
+.tarot-back:hover { z-index: 1; box-shadow: 0 12px 24px rgba(0, 0, 0, .45); }
 .tarot-back:nth-child(1) { transform: rotate(-12deg) translateY(10px); }
 .tarot-back:nth-child(2) { transform: rotate(-7deg) translateY(4px); }
 .tarot-back:nth-child(3) { transform: rotate(-2deg); }
@@ -341,7 +407,7 @@ const todayQuote = ref(BOOK_QUOTES[Math.floor(Math.random() * BOOK_QUOTES.length
 .weather-error button { padding: 8px 16px; border: 0; border-radius: 999px; color: #fff; background: var(--blue-700); font-size: .7rem; font-weight: 600; }
 .partial-weather-error { margin: 9px 0 0; color: #a17a4e; font-size: .65rem; }
 .weather-row { display: grid; grid-template-columns: 42px 1fr auto; align-items: center; gap: 10px; padding: 13px 4px; border-top: 1px solid var(--line); color: inherit; text-decoration: none; border-radius: 10px; transition: background .2s ease; }
-.weather-row:hover { background: #f5f5f7; }
+.weather-row:hover { background: var(--soft); }
 .weather-icon { font-size: 1.65rem; }
 .weather-row div, .weather-row p { display: grid; gap: 2px; margin: 0; }
 .weather-row div span, .weather-row p span { color: var(--muted); font-size: .69rem; }
@@ -363,7 +429,7 @@ const todayQuote = ref(BOOK_QUOTES[Math.floor(Math.random() * BOOK_QUOTES.length
 .pro-banner strong { color: var(--ink); font-size: .9rem; font-weight: 600; }
 .pro-banner p { margin: 3px 0 0; color: var(--muted); font-size: .75rem; }
 .pro-banner a { padding: 10px 18px; border-radius: 999px; color: #fff; background: var(--blue-700); font-size: .78rem; font-weight: 600; text-decoration: none; transition: background .2s ease; }
-.pro-banner a:hover { background: #0068d9; }
+.pro-banner a:hover { background: var(--blue-700-hover); }
 .favorites-panel { margin-top: 20px; padding: 26px; }
 .favorites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
 .favorites-empty { display: grid; min-height: 100px; place-items: center; gap: 8px; text-align: center; color: var(--muted); font-size: .82rem; }
@@ -374,18 +440,14 @@ const todayQuote = ref(BOOK_QUOTES[Math.floor(Math.random() * BOOK_QUOTES.length
 @media (max-width: 850px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .side-stack { grid-template-columns: repeat(2, 1fr); }
-  .hero-weather { min-width: 220px; }
-  .quick-strip { grid-template-columns: repeat(2, 1fr); row-gap: 15px; }
-  .quick-strip > div:nth-child(2) { border-right: 0; }
+  .score-strip { grid-template-columns: repeat(2, 1fr); row-gap: 20px; }
+  .score-item:nth-child(2) { border-right: 0; }
 }
 @media (max-width: 600px) {
-  .dashboard-page { width: min(100% - 24px, 1120px); padding-top: 32px; }
-  .dashboard-hero { flex-direction: column; align-items: flex-start; gap: 24px; }
-  .hero-weather { display: none; }
+  .page-inner { width: min(100% - 24px, 1120px); }
+  .dashboard-hero { min-height: 340px; }
+  .hero-seal { display: none; }
   .hero-copy { font-size: .92rem; }
-  .quick-strip { padding: 14px 12px; }
-  .quick-strip > div { padding: 0 10px; }
-  .quick-strip span:not(.quick-dot) { display: none; }
   .side-stack { grid-template-columns: 1fr; }
   .news-panel { padding: 22px 18px; }
   .news-item { grid-template-columns: 30px 1fr; gap: 8px; }

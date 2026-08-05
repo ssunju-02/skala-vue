@@ -155,7 +155,7 @@ const showDetail = (weather) => {
   border-radius: 50%;
   place-items: center;
   color: var(--muted);
-  background: #f5f5f7;
+  background: var(--soft);
   font-size: 1.15rem;
   line-height: 1;
   transition: color 150ms ease, background 150ms ease;
@@ -206,7 +206,7 @@ const showDetail = (weather) => {
 .weather-metrics div {
   padding: 10px;
   border-radius: 12px;
-  background: #f5f5f7;
+  background: var(--soft);
 }
 
 .weather-metrics dt {
@@ -257,7 +257,7 @@ const showDetail = (weather) => {
 }
 
 .card-bottom button:hover {
-  background: #0068d9;
+  background: var(--blue-700-hover);
 }
 
 @media (max-width: 560px) {

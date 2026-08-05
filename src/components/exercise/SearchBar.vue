@@ -48,7 +48,7 @@ const updateQuery = (event) => {
   padding: 0 18px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: #f5f5f7;
+  background: var(--soft);
   transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
 }
 

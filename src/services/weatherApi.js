@@ -313,15 +313,18 @@ const fetchWeatherMetrics = async (city) => {
         latitude: city.lat,
         longitude: city.lon,
         current: 'uv_index,precipitation',
+        daily: 'precipitation_sum',
+        forecast_days: 1,
         timezone: 'Asia/Seoul',
       },
     })
     return {
       uvIndex: Number.isFinite(data.current?.uv_index) ? data.current.uv_index : null,
       precipitation: Number.isFinite(data.current?.precipitation) ? data.current.precipitation : null,
+      precipitationForecast: Number.isFinite(data.daily?.precipitation_sum?.[0]) ? data.daily.precipitation_sum[0] : null,
     }
   } catch {
-    return { uvIndex: null, precipitation: null }
+    return { uvIndex: null, precipitation: null, precipitationForecast: null }
   }
 }
 
@@ -369,6 +372,7 @@ const normalizeWeather = (data, city, metrics, airQuality) => ({
   description: getDescription(data.weather[0]?.id),
   observation: `${getDescription(data.weather[0]?.id)}이며, 체감 온도는 ${Math.round(data.main.feels_like)}도입니다.`,
   precipitation: data.rain?.['1h'] ?? data.snow?.['1h'] ?? metrics.precipitation ?? 0,
+  precipitationForecast: metrics.precipitationForecast,
   uvIndex: metrics.uvIndex,
   pressure: data.main.pressure,
   visibility: data.visibility,

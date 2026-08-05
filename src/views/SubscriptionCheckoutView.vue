@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, ref } from 'vue'
 
-document.title = 'SKALA Weather Pro 구독 | 안전한 결제'
+document.title = '오늘, 브리핑 Pro 구독 | 안전한 결제'
 
 const billingCycle = ref('yearly')
 const paymentMethod = ref('card')
@@ -82,7 +82,7 @@ const submitPayment = async () => {
       <h1 id="success-title">이제 더 깊은 날씨를 만나보세요.</h1>
       <p class="success-copy">
         <strong>{{ email }}</strong>로 구독 확인 메일을 보냈습니다.<br>
-        SKALA Weather Pro의 모든 기능을 바로 사용할 수 있어요.
+        오늘, 브리핑 Pro의 모든 기능을 바로 사용할 수 있어요.
       </p>
       <div class="receipt">
         <span>결제 금액</span>
@@ -101,7 +101,7 @@ const submitPayment = async () => {
 
       <div class="checkout-layout">
         <section class="checkout-main" aria-labelledby="checkout-title">
-          <p class="eyebrow">SKALA WEATHER PRO</p>
+          <p class="eyebrow">오늘, 브리핑 PRO</p>
           <h1 id="checkout-title">날씨를 미리 알고,<br>하루를 여유롭게.</h1>
           <p class="lead">광고 없이 더 긴 예보와 세밀한 생활 기상 정보를 확인하세요.</p>
 
@@ -187,7 +187,7 @@ const submitPayment = async () => {
         <aside class="order-card" aria-labelledby="order-title">
           <div class="plan-visual">
             <span class="weather-orb" aria-hidden="true">☀</span>
-            <div><p>SKALA WEATHER</p><strong>PRO</strong></div>
+            <div><p>오늘, 브리핑</p><strong>PRO</strong></div>
           </div>
           <h2 id="order-title">주문 요약</h2>
           <div class="summary-row"><span>Weather Pro {{ currentPlan.label }}</span><strong>{{ formattedPrice }}</strong></div>
@@ -225,7 +225,7 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(2.35rem, 5vw, 4.25rem); line
 .plan-toggle label { position: relative; display: grid; gap: 4px; padding: 17px 18px; border: 1px solid var(--line); border-radius: 16px; color: var(--muted); background: var(--surface); cursor: pointer; transition: border-color .2s, box-shadow .2s, background .2s; }
 .plan-toggle label.selected { border-color: var(--blue-700); color: var(--ink); background: #fff; box-shadow: 0 0 0 3px var(--blue-100); }
 .plan-toggle input { position: absolute; opacity: 0; pointer-events: none; }
-.plan-toggle label:has(input:focus-visible) { outline: 3px solid rgba(0,122,255,.4); outline-offset: 3px; }
+.plan-toggle label:has(input:focus-visible) { outline: 3px solid rgba(58,131,191,.4); outline-offset: 3px; }
 .plan-toggle span { font-size: .82rem; font-weight: 600; }
 .plan-toggle strong { font-size: 1rem; }
 .save-badge { position: absolute; top: -11px; right: 12px; padding: 4px 9px; border-radius: 99px; color: #fff; background: var(--blue-700); font-size: .68rem !important; }
@@ -244,7 +244,7 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(2.35rem, 5vw, 4.25rem); line
 .payment-tabs label { display: flex; align-items: center; justify-content: center; min-height: 52px; gap: 8px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); background: #fff; font-size: .86rem; font-weight: 600; cursor: pointer; }
 .payment-tabs label.active { border-color: var(--blue-700); color: var(--blue-700); background: var(--blue-100); box-shadow: inset 0 0 0 1px var(--blue-700); }
 .payment-tabs input { position: absolute; opacity: 0; }
-.payment-tabs label:has(input:focus-visible) { outline: 3px solid rgba(0,122,255,.4); outline-offset: 3px; }
+.payment-tabs label:has(input:focus-visible) { outline: 3px solid rgba(58,131,191,.4); outline-offset: 3px; }
 .kakao-mark, .kakao-logo { display: grid; border-radius: 50%; place-items: center; color: #251c00; background: #fee500; font-weight: 700; }
 .kakao-mark { width: 20px; height: 20px; font-size: .67rem; }
 .card-fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 14px; }
@@ -261,7 +261,7 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(2.35rem, 5vw, 4.25rem); line
 .agreement strong { color: var(--blue-700); }
 .form-error { margin: 0 0 12px; padding: 11px 13px; border-radius: 10px; color: #b3453d; background: #fff0ee; font-size: .8rem; font-weight: 600; }
 .submit-button { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; gap: 10px; border: 0; border-radius: 999px; color: #fff; background: var(--blue-700); font-weight: 600; transition: transform .2s, background .2s; }
-.submit-button:hover:not(:disabled) { background: #0068d9; transform: translateY(-1px); }
+.submit-button:hover:not(:disabled) { background: var(--blue-700-hover); transform: translateY(-1px); }
 .submit-button:disabled { cursor: wait; opacity: .75; }
 .spinner { width: 17px; height: 17px; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
 .demo-notice { margin: 12px 0 0; color: #a1a1a6; text-align: center; font-size: .72rem; }
@@ -279,12 +279,12 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(2.35rem, 5vw, 4.25rem); line
 .summary-total div { display: grid; gap: 3px; color: var(--ink); font-size: .84rem; }
 .summary-total small { color: var(--muted); font-size: .68rem; }
 .summary-total > strong { color: var(--ink); font-size: 1.55rem; letter-spacing: -.03em; }
-.renewal-note { margin: 18px 0 0; padding: 12px; border-radius: 12px; color: var(--muted); background: #f5f5f7; font-size: .72rem; line-height: 1.6; }
+.renewal-note { margin: 18px 0 0; padding: 12px; border-radius: 12px; color: var(--muted); background: var(--soft); font-size: .72rem; line-height: 1.6; }
 .success-panel { width: min(620px, 100%); margin: 64px auto 0; padding: 56px; border: 1px solid var(--line); border-radius: 26px; text-align: center; background: #fff; box-shadow: var(--shadow); }
 .success-icon { display: grid; width: 66px; height: 66px; margin: 0 auto 24px; border-radius: 50%; place-items: center; color: #fff; background: #1a8f5c; font-size: 1.8rem; font-weight: 700; }
 .success-panel h1 { font-size: clamp(2rem, 5vw, 3.1rem); }
 .success-copy { margin: 20px 0 28px; color: var(--muted); line-height: 1.8; }
-.receipt { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 28px; padding: 20px; border-radius: 14px; text-align: left; color: var(--muted); background: #f5f5f7; font-size: .84rem; }
+.receipt { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 28px; padding: 20px; border-radius: 14px; text-align: left; color: var(--muted); background: var(--soft); font-size: .84rem; }
 .receipt strong { color: var(--ink); }
 .primary-link { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; padding: 0 22px; border-radius: 999px; color: #fff; background: var(--blue-700); font-weight: 600; text-decoration: none; }
 @keyframes spin { to { transform: rotate(360deg); } }

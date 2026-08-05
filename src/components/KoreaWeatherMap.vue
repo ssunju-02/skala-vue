@@ -42,9 +42,9 @@ const updateMarker = (region) => {
   const selected = isSelected(region.id)
   marker.setStyle({
     radius: selected ? 10 : 7,
-    color: selected ? '#ffffff' : '#007aff',
+    color: selected ? '#ffffff' : 'var(--blue-700)',
     weight: selected ? 3 : 2,
-    fillColor: selected ? '#ff3b30' : '#3395ff',
+    fillColor: selected ? '#ff3b30' : 'var(--blue-500)',
     fillOpacity: 1,
   })
   marker.setTooltipContent(`${region.name}${selected ? ' · 선택됨' : ''}`)
@@ -123,9 +123,9 @@ onMounted(() => {
   KOREA_WEATHER_REGIONS.forEach((region) => {
     const marker = L.circleMarker([region.lat, region.lon], {
       radius: 7,
-      color: '#007aff',
+      color: 'var(--blue-700)',
       weight: 2,
-      fillColor: '#3395ff',
+      fillColor: 'var(--blue-500)',
       fillOpacity: 1,
     }).addTo(map)
     marker.bindTooltip(region.name, { direction: 'top', offset: [0, -6] })
@@ -222,17 +222,17 @@ onBeforeUnmount(() => {
 .eyebrow { margin: 0 0 7px; color: var(--blue-700); font-size: .68rem; font-weight: 700; letter-spacing: .15em; }
 .map-heading h2 { margin: 0 0 7px; color: var(--ink); font-size: 1.55rem; letter-spacing: -.035em; font-weight: 700; }
 .map-heading p:not(.eyebrow) { margin: 0; color: var(--muted); font-size: .8rem; }
-.selection-count { display: grid; min-width: 105px; grid-template-columns: auto 1fr; align-items: baseline; gap: 4px; padding: 12px 14px; border-radius: 14px; color: var(--muted); background: #f5f5f7; }
+.selection-count { display: grid; min-width: 105px; grid-template-columns: auto 1fr; align-items: baseline; gap: 4px; padding: 12px 14px; border-radius: 14px; color: var(--muted); background: var(--soft); }
 .selection-count strong { color: var(--blue-700); font-size: 1.45rem; }
 .selection-count span { font-size: .68rem; }
 .selection-count button { grid-column: 1 / -1; padding: 4px; border: 0; color: var(--muted); background: transparent; font-size: .65rem; text-decoration: underline; }
 .map-canvas { width: 100%; height: 440px; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #eef1f4; }
-.map-canvas:focus-visible { outline: 3px solid rgba(0,122,255,.45); outline-offset: 3px; }
+.map-canvas:focus-visible { outline: 3px solid rgba(58,131,191,.45); outline-offset: 3px; }
 .map-canvas :deep(.leaflet-control-attribution) { font-size: 9px; }
 .map-canvas :deep(.leaflet-tooltip) { border: 0; border-radius: 7px; color: var(--ink); box-shadow: 0 4px 12px rgba(0,0,0,.14); font-family: -apple-system, 'Noto Sans KR', sans-serif; font-size: .68rem; font-weight: 700; }
 .region-buttons { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
 .region-buttons button { display: inline-flex; align-items: center; min-height: 34px; gap: 6px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: #fff; font-size: .7rem; font-weight: 600; transition: border-color .2s, background .2s; }
-.region-buttons button:hover { border-color: #b0b0b5; background: #f5f5f7; }
+.region-buttons button:hover { border-color: #b0b0b5; background: var(--soft); }
 .region-buttons button.selected { border-color: var(--blue-700); color: var(--blue-700); background: var(--blue-100); }
 .region-buttons button span { width: 6px; height: 6px; border-radius: 50%; background: var(--blue-500); }
 .region-buttons button.selected span { background: #ff3b30; }
@@ -243,7 +243,7 @@ onBeforeUnmount(() => {
 .comparison-heading > div { display: flex; align-items: center; gap: 7px; }
 .region-pin { width: 8px; height: 8px; border-radius: 50%; background: #ff3b30; }
 .comparison-heading h3 { margin: 0; color: var(--ink); font-size: .9rem; font-weight: 600; }
-.comparison-heading > button { width: 28px; height: 28px; border: 0; border-radius: 8px; color: var(--muted); background: #f5f5f7; font-size: 1.15rem; }
+.comparison-heading > button { width: 28px; height: 28px; border: 0; border-radius: 8px; color: var(--muted); background: var(--soft); font-size: 1.15rem; }
 .current-weather { display: flex; align-items: center; gap: 12px; margin: 18px 0; }
 .current-weather > span { font-size: 2rem; }
 .current-weather div { min-width: 0; }

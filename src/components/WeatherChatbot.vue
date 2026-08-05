@@ -269,7 +269,7 @@ const askQuestion = async (preset) => {
 <style scoped>
 .chatbot-wrap { position: fixed; right: 24px; bottom: 24px; z-index: 5000; isolation: isolate; }
 .chatbot-toggle { display: flex; align-items: center; min-height: 54px; gap: 10px; padding: 8px 18px 8px 8px; border: 0; border-radius: 999px; color: #fff; background: var(--blue-700); box-shadow: 0 10px 28px rgba(0,0,0,.16); transition: transform .18s, background .18s; }
-.chatbot-toggle:hover { background: #0068d9; transform: translateY(-2px); }
+.chatbot-toggle:hover { background: var(--blue-700-hover); transform: translateY(-2px); }
 .chatbot-toggle span { display: grid; width: 38px; height: 38px; border-radius: 50%; place-items: center; color: var(--blue-700); background: #fff; font-size: 1.25rem; }
 .chatbot-toggle strong { font-size: .82rem; font-weight: 600; }
 .chatbot-panel { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto auto; width: min(380px, calc(100vw - 32px)); height: min(610px, calc(100vh - 48px)); overflow: hidden; border: 1px solid var(--line); border-radius: 22px; background: rgba(255,255,255,.85); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); box-shadow: 0 24px 60px rgba(0,0,0,.18); }
