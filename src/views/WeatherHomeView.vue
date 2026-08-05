@@ -112,7 +112,6 @@ watch(searchQuery, (query) => {
     <header class="hero">
       <div class="hero-media" aria-hidden="true"></div>
       <div class="hero-scrim" aria-hidden="true"></div>
-      <div class="hero-symbol" aria-hidden="true">🌤️</div>
       <div class="hero-inner">
         <p class="eyebrow">TODAY'S WEATHER</p>
         <h1>지역별 날씨 현황</h1>
@@ -258,23 +257,6 @@ h1 {
   font-weight: 600;
 }
 
-.hero-symbol {
-  position: absolute;
-  top: 28px;
-  right: max(20px, calc((100% - 1120px) / 2));
-  z-index: 1;
-  display: grid;
-  width: 84px;
-  height: 84px;
-  flex: 0 0 auto;
-  border: 1px dashed rgba(255, 255, 255, .55);
-  border-radius: 22px;
-  place-items: center;
-  font-size: 2.8rem;
-  background: rgba(255, 255, 255, .1);
-  backdrop-filter: blur(6px);
-  box-shadow: var(--shadow);
-}
 
 .weather-section {
   width: 100%;
@@ -372,12 +354,6 @@ h1 {
   .weather-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .hero-symbol {
-    width: 96px;
-    height: 96px;
-    font-size: 3rem;
-  }
 }
 
 @media (max-width: 560px) {
@@ -387,10 +363,6 @@ h1 {
 
   .hero {
     min-height: 260px;
-  }
-
-  .hero-symbol {
-    display: none;
   }
 
   .hero-description {

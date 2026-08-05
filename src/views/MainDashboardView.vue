@@ -138,11 +138,6 @@ onUnmounted(() => clearInterval(quoteRefreshTimer))
     <header class="dashboard-hero">
       <div class="hero-media" aria-hidden="true"></div>
       <div class="hero-scrim" aria-hidden="true"></div>
-      <div class="hero-seal" aria-hidden="true">
-        <span class="hero-seal-top">오늘,</span>
-        <span class="hero-seal-icon">{{ heroWeather ? (weatherIcon[heroWeather.status] ?? '🌤️') : '☀️' }}</span>
-        <span class="hero-seal-bottom">브리핑</span>
-      </div>
       <div class="hero-inner">
         <p class="date-label">{{ today }}</p>
         <h1 v-if="heroWeather">현재 {{ heroWeather.name }}의<br><span>체감온도는 {{ configStore.formatTemperature(heroWeather.feelsLike) }}</span></h1>
@@ -300,25 +295,6 @@ onUnmounted(() => clearInterval(quoteRefreshTimer))
 .dashboard-hero { position: relative; display: flex; align-items: flex-end; min-height: 460px; overflow: hidden; }
 .hero-media { position: absolute; inset: 0; background-image: v-bind(heroImageStyle); background-position: center 60%; background-size: cover; }
 .hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15, 13, 9, .1) 0%, rgba(15, 13, 9, .55) 70%, rgba(15, 13, 9, .78) 100%); }
-.hero-seal {
-  position: absolute;
-  top: 32px;
-  right: max(20px, calc((100% - 1120px) / 2));
-  z-index: 1;
-  display: grid;
-  width: 108px;
-  height: 108px;
-  gap: 2px;
-  place-items: center;
-  border: 1px dashed rgba(255, 255, 255, .55);
-  border-radius: 50%;
-  color: #fff;
-  background: rgba(255, 255, 255, .08);
-  backdrop-filter: blur(6px);
-  transform: rotate(-8deg);
-}
-.hero-seal-top, .hero-seal-bottom { font-size: .58rem; font-weight: 700; letter-spacing: .18em; }
-.hero-seal-icon { margin: 2px 0; font-size: 1.7rem; }
 .hero-inner { position: relative; z-index: 1; width: 100%; padding: 0 max(20px, calc((100% - 1120px) / 2)) 56px; }
 .date-label { margin: 0 0 14px; color: rgba(255, 255, 255, .78); font-size: .82rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 .dashboard-hero h1 { max-width: 760px; margin: 0; color: #fff; font-size: clamp(2.4rem, 6vw, 4.6rem); line-height: 1.05; letter-spacing: -.045em; font-weight: 800; }
@@ -331,7 +307,7 @@ onUnmounted(() => clearInterval(quoteRefreshTimer))
 .score-value { color: var(--ink); font-size: 1rem; font-weight: 700; letter-spacing: -.01em; }
 .score-value.positive { color: #1a8f5c; }
 .score-value.negative { color: #e0453c; }
-.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.42fr) minmax(340px, .9fr); gap: 20px; }
+.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.42fr) minmax(340px, .9fr); grid-template-rows: auto auto; gap: 20px; }
 .panel { border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow); }
 .news-panel { padding: 30px 32px; }
 .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
@@ -389,13 +365,13 @@ onUnmounted(() => clearInterval(quoteRefreshTimer))
 .tarot-back:nth-child(4):hover { transform: rotate(2deg) translateY(-8px); }
 .tarot-back:nth-child(5):hover { transform: rotate(7deg) translateY(-4px); }
 .tarot-back:nth-child(6):hover { transform: rotate(12deg) translateY(2px); }
-.main-stack { display: grid; align-content: start; gap: 20px; }
-.quote-panel { display: flex; flex-direction: column; }
+.main-stack { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 20px; }
+.quote-panel { display: flex; flex-direction: column; justify-content: center; }
 .book-quote { display: grid; justify-items: center; gap: 14px; margin: 10px 0 0; padding: 8px 6px; text-align: center; }
-.book-quote p { max-width: 480px; margin: 0; color: var(--ink); font-size: 1.05rem; font-style: italic; line-height: 1.7; }
+.book-quote p { max-width: 480px; margin: 0; color: var(--ink); font-size: 1.05rem; font-style: italic; line-height: 1.7; word-break: keep-all; overflow-wrap: break-word; white-space: pre-line; }
 .book-quote footer { color: var(--muted); font-size: .8rem; }
 .book-quote cite { color: var(--blue-700); font-style: normal; font-weight: 600; }
-.side-stack { display: grid; gap: 20px; }
+.side-stack { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 20px; }
 .weather-panel, .stock-panel { padding: 26px; }
 .compact-heading { align-items: center; }
 .compact-heading a { color: var(--blue-700); font-size: .74rem; font-weight: 600; text-decoration: none; }
@@ -439,6 +415,7 @@ onUnmounted(() => clearInterval(quoteRefreshTimer))
 
 @media (max-width: 850px) {
   .dashboard-grid { grid-template-columns: 1fr; }
+  .main-stack, .side-stack { grid-row: auto; grid-template-rows: initial; }
   .side-stack { grid-template-columns: repeat(2, 1fr); }
   .score-strip { grid-template-columns: repeat(2, 1fr); row-gap: 20px; }
   .score-item:nth-child(2) { border-right: 0; }
@@ -446,7 +423,6 @@ onUnmounted(() => clearInterval(quoteRefreshTimer))
 @media (max-width: 600px) {
   .page-inner { width: min(100% - 24px, 1120px); }
   .dashboard-hero { min-height: 340px; }
-  .hero-seal { display: none; }
   .hero-copy { font-size: .92rem; }
   .side-stack { grid-template-columns: 1fr; }
   .news-panel { padding: 22px 18px; }
