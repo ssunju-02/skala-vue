@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from 'vue'
 import { useConfigStore } from '../stores/configStore'
 import { DEFAULT_WEATHER_LOCATIONS, fetchCurrentWeather, getAirQualityLevel, getWeatherErrorMessage } from '../services/weatherApi'
 import InfraredWindMap from '../components/InfraredWindMap.vue'
-import RainRadarMap from '../components/RainRadarMap.vue'
 import heroImage from '../assets/images/hero-ranking.jpg'
 
 document.title = '오늘의 날씨 랭킹 | 오늘, 브리핑'
@@ -26,8 +25,8 @@ const loadAll = async () => {
 
 onMounted(loadAll)
 
-const hottest = computed(() => [...weather.value].sort((a, b) => b.temp - a.temp).slice(0, 5))
-const coldest = computed(() => [...weather.value].sort((a, b) => a.temp - b.temp).slice(0, 5))
+const hottest = computed(() => [...weather.value].sort((a, b) => b.feelsLike - a.feelsLike).slice(0, 5))
+const coldest = computed(() => [...weather.value].sort((a, b) => a.feelsLike - b.feelsLike).slice(0, 5))
 const cleanestAir = computed(() => weather.value
   .filter((city) => Number.isFinite(city.airQualityIndex))
   .sort((a, b) => a.airQualityIndex - b.airQualityIndex)
@@ -76,17 +75,17 @@ const boards = computed(() => [
   {
     id: 'hot',
     icon: '🔥',
-    title: '가장 더운 지역',
+    title: '체감상 가장 더운 지역',
     items: hottest.value,
-    format: (city) => configStore.formatTemperature(city.temp),
+    format: (city) => configStore.formatTemperature(city.feelsLike),
     emptyText: '날씨 데이터를 불러오지 못했어요.',
   },
   {
     id: 'cold',
     icon: '❄️',
-    title: '가장 추운 지역',
+    title: '체감상 가장 추운 지역',
     items: coldest.value,
-    format: (city) => configStore.formatTemperature(city.temp),
+    format: (city) => configStore.formatTemperature(city.feelsLike),
     emptyText: '날씨 데이터를 불러오지 못했어요.',
   },
   {
@@ -119,7 +118,7 @@ const highlight = computed(() => {
   if (!hottest.value.length || !coldest.value.length) return ''
   const hot = hottest.value[0]
   const cold = coldest.value[0]
-  return `오늘 전국에서 가장 더운 곳은 ${hot.name}(${configStore.formatTemperature(hot.temp)}), 가장 추운 곳은 ${cold.name}(${configStore.formatTemperature(cold.temp)})예요.`
+  return `오늘 전국에서 체감상 가장 더운 곳은 ${hot.name}(${configStore.formatTemperature(hot.feelsLike)}), 가장 추운 곳은 ${cold.name}(${configStore.formatTemperature(cold.feelsLike)})예요.`
 })
 </script>
 
@@ -131,7 +130,7 @@ const highlight = computed(() => {
       <div class="hero-inner">
         <p class="eyebrow">WEATHER LEADERBOARD</p>
         <h1>오늘의 날씨 랭킹</h1>
-        <p class="hero-copy">전국 18개 지역의 날씨를 비교해서 오늘의 순위를 매겨봤어요.</p>
+        <p class="hero-copy">오늘 전국 지역별 날씨를 순위로 한눈에 비교해 보세요.</p>
       </div>
     </header>
 
@@ -158,8 +157,18 @@ const highlight = computed(() => {
           </ol>
           <p v-else class="board-empty">{{ board.emptyText }}</p>
         </section>
+      </div>
+      <p v-if="!isLoading" class="ranking-notice">실시간 관측 데이터를 기준으로 하며, 재미로 참고해 주세요.</p>
 
-        <section class="board panel rain-board" aria-labelledby="board-rain">
+      <section class="infrared-panel" aria-labelledby="wind-map-title">
+        <div class="infrared-heading">
+          <p class="infrared-eyebrow">LIVE WIND FLOW</p>
+          <h2 id="wind-map-title">전국 바람 흐름 지도</h2>
+          <p class="infrared-copy">지역별 기온은 색으로, 바람이 흘러가는 방향은 화살표로, 실시간 강수 레이더는 움직이는 이미지로 표시했어요. 바람 화살표는 관측값 기준 근사치이고, 레이더는 RainViewer의 실시간 관측 데이터예요.</p>
+        </div>
+        <InfraredWindMap :regions="mapRegions" />
+
+        <div class="wind-rain-section" :aria-labelledby="'board-rain'">
           <div class="board-heading">
             <span class="board-icon" aria-hidden="true">{{ rainBoard.icon }}</span>
             <h2 id="board-rain">{{ rainBoard.title }}</h2>
@@ -171,19 +180,8 @@ const highlight = computed(() => {
               <strong class="board-value">{{ rainBoard.format(city) }}</strong>
             </li>
           </ol>
-          <p v-else class="board-empty rain-board-empty">{{ rainBoard.emptyText }}</p>
-          <RainRadarMap class="rain-board-map" />
-        </section>
-      </div>
-      <p v-if="!isLoading" class="ranking-notice">실시간 관측 데이터를 기준으로 하며, 재미로 참고해 주세요.</p>
-
-      <section class="infrared-panel" aria-labelledby="wind-map-title">
-        <div class="infrared-heading">
-          <p class="infrared-eyebrow">LIVE WIND FLOW</p>
-          <h2 id="wind-map-title">전국 바람 흐름 지도</h2>
-          <p class="infrared-copy">지역별 기온은 색으로, 바람이 흘러가는 방향은 화살표로 표시했어요. 화살표는 관측된 바람 방향을 기준으로 한 근사치예요.</p>
+          <p v-else class="board-empty">{{ rainBoard.emptyText }}</p>
         </div>
-        <InfraredWindMap :regions="mapRegions" />
       </section>
     </div>
   </main>
@@ -220,9 +218,6 @@ h1 { margin: 0 0 12px; color: #fff; font-size: clamp(2rem, 5vw, 3.4rem); line-he
 .board-city { color: var(--ink); font-size: .92rem; font-weight: 600; }
 .board-value { color: var(--blue-700); font-size: .92rem; font-weight: 700; }
 .board-empty { display: grid; min-height: 100px; gap: 8px; margin: 0; place-items: center; color: var(--muted); font-size: .85rem; text-align: center; }
-.rain-board { grid-column: 1 / -1; }
-.rain-board-empty { min-height: 40px; margin-bottom: 14px; }
-.rain-board-map { margin-top: 14px; }
 .ranking-notice { margin: 0 0 40px; color: var(--muted); font-size: .72rem; text-align: center; }
 
 .infrared-panel { padding: 30px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); box-shadow: var(--shadow); scroll-margin-top: 90px; }
@@ -230,6 +225,7 @@ h1 { margin: 0 0 12px; color: #fff; font-size: clamp(2rem, 5vw, 3.4rem); line-he
 .infrared-eyebrow { margin: 0 0 8px; color: var(--blue-700); font-size: .68rem; font-weight: 700; letter-spacing: .16em; }
 .infrared-heading h2 { margin: 0 0 8px; color: var(--ink); font-size: 1.35rem; letter-spacing: -.03em; font-weight: 700; }
 .infrared-copy { max-width: 640px; margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.6; }
+.wind-rain-section { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
 
 @media (max-width: 760px) {
   .board-grid { grid-template-columns: 1fr; }

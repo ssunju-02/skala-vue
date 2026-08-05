@@ -79,7 +79,7 @@ const submitPayment = async () => {
     <section v-if="isComplete" class="success-panel" aria-labelledby="success-title">
       <span class="success-icon" aria-hidden="true">✓</span>
       <p class="eyebrow">PAYMENT COMPLETE</p>
-      <h1 id="success-title">이제 더 깊은 날씨를 만나보세요.</h1>
+      <h1 id="success-title">이제 더 깊은 날씨를<br>만나보세요.</h1>
       <p class="success-copy">
         <strong>{{ email }}</strong>로 구독 확인 메일을 보냈습니다.<br>
         오늘, 브리핑 Pro의 모든 기능을 바로 사용할 수 있어요.
@@ -282,7 +282,7 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(2.35rem, 5vw, 4.25rem); line
 .renewal-note { margin: 18px 0 0; padding: 12px; border-radius: 12px; color: var(--muted); background: var(--soft); font-size: .72rem; line-height: 1.6; }
 .success-panel { width: min(620px, 100%); margin: 64px auto 0; padding: 56px; border: 1px solid var(--line); border-radius: 26px; text-align: center; background: #fff; box-shadow: var(--shadow); }
 .success-icon { display: grid; width: 66px; height: 66px; margin: 0 auto 24px; border-radius: 50%; place-items: center; color: #fff; background: #1a8f5c; font-size: 1.8rem; font-weight: 700; }
-.success-panel h1 { font-size: clamp(2rem, 5vw, 3.1rem); }
+.success-panel h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.25; }
 .success-copy { margin: 20px 0 28px; color: var(--muted); line-height: 1.8; }
 .receipt { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 28px; padding: 20px; border-radius: 14px; text-align: left; color: var(--muted); background: var(--soft); font-size: .84rem; }
 .receipt strong { color: var(--ink); }

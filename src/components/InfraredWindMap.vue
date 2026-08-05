@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -10,6 +10,53 @@ const props = defineProps({
 const mapElement = ref(null)
 let map
 const markers = []
+
+const RADAR_FRAME_MS = 600
+let radarLayer = null
+let radarHost = ''
+let radarTimer = null
+const radarFrames = ref([])
+const radarFrameIndex = ref(0)
+const isRadarPlaying = ref(true)
+const isRadarAvailable = ref(false)
+
+const buildRadarUrl = (frame) => `${radarHost}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`
+
+const radarTimeLabel = computed(() => {
+  const frame = radarFrames.value[radarFrameIndex.value]
+  if (!frame) return ''
+  return new Intl.DateTimeFormat('ko-KR', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' }).format(new Date(frame.time * 1000))
+})
+
+const toggleRadarPlay = () => { isRadarPlaying.value = !isRadarPlaying.value }
+
+const startRadarLoop = () => {
+  clearInterval(radarTimer)
+  radarTimer = setInterval(() => {
+    if (!isRadarPlaying.value || !radarLayer || !radarFrames.value.length) return
+    radarFrameIndex.value = (radarFrameIndex.value + 1) % radarFrames.value.length
+    radarLayer.setUrl(buildRadarUrl(radarFrames.value[radarFrameIndex.value]))
+  }, RADAR_FRAME_MS)
+}
+
+const loadRadar = async () => {
+  try {
+    const response = await fetch('https://api.rainviewer.com/public/weather-maps.json')
+    const data = await response.json()
+    radarHost = data.host
+    radarFrames.value = [...(data.radar?.past ?? []), ...(data.radar?.nowcast ?? [])]
+    if (!radarFrames.value.length || !map) return
+    radarFrameIndex.value = radarFrames.value.length - 1
+    radarLayer = L.tileLayer(buildRadarUrl(radarFrames.value[radarFrameIndex.value]), {
+      opacity: .55,
+      zIndex: 5,
+    }).addTo(map)
+    isRadarAvailable.value = true
+    startRadarLoop()
+  } catch {
+    radarFrames.value = []
+  }
+}
 
 const COMPASS_TO_DEG = { 북: 0, 북동: 45, 동: 90, 남동: 135, 남: 180, 남서: 225, 서: 270, 북서: 315 }
 
@@ -64,27 +111,39 @@ onMounted(() => {
   }).addTo(map)
 
   renderMarkers()
+  loadRadar()
 })
 
 watch(() => props.regions, renderMarkers)
 
 onBeforeUnmount(() => {
+  clearInterval(radarTimer)
   map?.remove()
 })
 </script>
 
 <template>
   <div class="infrared-map">
-    <div ref="mapElement" class="infrared-map-canvas" role="img" aria-label="전국 기온과 바람이 흘러가는 방향을 표시한 지도"></div>
+    <div class="infrared-map-frame">
+      <div ref="mapElement" class="infrared-map-canvas" role="img" aria-label="전국 기온, 바람 방향, 실시간 강수 레이더를 표시한 지도"></div>
+      <div v-if="isRadarAvailable" class="radar-controls">
+        <button type="button" class="radar-toggle" :aria-label="isRadarPlaying ? '레이더 애니메이션 정지' : '레이더 애니메이션 재생'" @click="toggleRadarPlay">
+          {{ isRadarPlaying ? '⏸' : '▶' }}
+        </button>
+        <span class="radar-time">{{ radarTimeLabel }} 강수 레이더</span>
+      </div>
+    </div>
     <p class="infrared-map-legend">
       <span class="legend-dot cold" aria-hidden="true"></span> 차가움
       <span class="legend-dot hot" aria-hidden="true"></span> 따뜻함
-      <span aria-hidden="true">➤</span> 바람이 흘러가는 방향 (구름 이동 방향의 근사치)
+      <span aria-hidden="true">➤</span> 바람 방향
+      <span aria-hidden="true">·</span> 파란/초록 음영은 실시간 강수 레이더예요
     </p>
   </div>
 </template>
 
 <style scoped>
+.infrared-map-frame { position: relative; }
 .infrared-map-canvas {
   width: 100%;
   height: 420px;
@@ -92,6 +151,32 @@ onBeforeUnmount(() => {
   border: 1px solid var(--line);
   border-radius: 18px;
 }
+.radar-controls {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: var(--shadow);
+}
+.radar-toggle {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  place-items: center;
+  color: #fff;
+  background: var(--blue-700);
+  font-size: .7rem;
+}
+.radar-time { color: var(--ink); font-size: .7rem; font-weight: 600; }
 .infrared-map-canvas :deep(.leaflet-control-attribution) {
   color: rgba(0, 0, 0, .5);
   background: rgba(255, 255, 255, .65);
