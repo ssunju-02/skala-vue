@@ -39,7 +39,6 @@ onMounted(async () => {
     try {
       const result = await fetchStockSeries(card.market)
       card.series = result.series
-      card.source = result.source
       card.change = result.change
       card.percentChange = result.percentChange
     }
@@ -76,7 +75,6 @@ onMounted(async () => {
         <div class="col-name">
           <strong>{{ card.market.name }}</strong>
           <span class="symbol">{{ card.market.symbol }}</span>
-          <span v-if="card.source === 'demo'" class="demo-badge">DEMO</span>
         </div>
         <p v-if="card.loading" class="state" role="status">시세를 불러오는 중입니다…</p>
         <p v-else-if="card.error" class="state error" role="alert">{{ card.error }}</p>
@@ -122,13 +120,13 @@ onMounted(async () => {
 .col-name { display: flex; align-items: baseline; gap: 8px; overflow: hidden; }
 .col-name strong { overflow: hidden; color: var(--ink); font-size: .96rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .col-name .symbol { flex: 0 0 auto; color: var(--muted); font-size: .74rem; }
-.demo-badge { flex: 0 0 auto; padding: 3px 7px; border-radius: 999px; color: var(--blue-700); background: var(--blue-100); font-size: .62rem; font-weight: 700; }
 .col-price { color: var(--ink); font-size: 1.05rem; font-weight: 700; letter-spacing: -.02em; text-align: right; }
 .col-change { display: flex; align-items: center; justify-content: flex-end; gap: 5px; color: #1a8f5c; font-size: .84rem; font-weight: 600; white-space: nowrap; }
 .col-change.down { color: #e0453c; }
 .col-change .arrow { font-size: .72rem; }
 .col-change .percent { color: var(--muted); font-weight: 500; }
 .col-chart { display: block; width: 100%; height: 40px; overflow: visible; color: var(--blue-500); }
+.stock-row--head .col-chart { height: auto; }
 .state { grid-column: 3 / -1; margin: 0; color: var(--muted); font-size: .82rem; text-align: right; }
 .state.error { color: #b3453d; }
 @media (max-width: 760px) {
