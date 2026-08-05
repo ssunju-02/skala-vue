@@ -115,7 +115,8 @@ onMounted(async () => {
   border-top: 1px solid var(--line);
 }
 .stock-row:first-child { border-top: 0; }
-.stock-row--head { padding: 14px 22px; color: var(--muted); background: var(--soft); font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.stock-row--head { padding: 14px 22px; background: var(--soft); }
+.stock-row--head span { color: var(--ink); font-size: 1.05rem; font-weight: 700; letter-spacing: -.02em; text-transform: none; }
 .stock-row--head .col-price, .stock-row--head .col-change { text-align: right; }
 .rank { display: inline-grid; width: 26px; height: 26px; border-radius: 7px; place-items: center; color: var(--blue-700); background: var(--blue-100); font-size: .74rem; font-weight: 700; }
 .col-name { display: flex; align-items: baseline; gap: 8px; overflow: hidden; }
