@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { STOCK_MARKETS, fetchStockSeries } from '../services/stockApi'
 import { TAROT_CARDS } from '../data/tarotCards'
-import { BOOK_QUOTES } from '../data/bookQuotes'
+import { fetchDailyQuote } from '../services/quoteApi'
 import { useConfigStore } from '../stores/configStore'
 import { useFavoritesStore } from '../stores/favoritesStore'
 import heroImage from '../assets/images/hero-ocean.jpg'
@@ -116,19 +116,27 @@ const resetCard = () => {
   todayCard.value = null
 }
 
-const getQuoteIndexForToday = () => {
-  const now = new Date()
-  const localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-  return Math.floor(localMidnight / 86400000) % BOOK_QUOTES.length
+const todayQuote = ref(null)
+const isQuoteLoading = ref(true)
+const quoteError = ref('')
+
+const loadQuote = async () => {
+  isQuoteLoading.value = true
+  quoteError.value = ''
+  try {
+    todayQuote.value = await fetchDailyQuote()
+  } catch {
+    quoteError.value = '명언을 불러오지 못했어요.'
+  } finally {
+    isQuoteLoading.value = false
+  }
 }
 
-const todayQuote = ref(BOOK_QUOTES[getQuoteIndexForToday()])
+onMounted(loadQuote)
 
 let quoteRefreshTimer
 onMounted(() => {
-  quoteRefreshTimer = setInterval(() => {
-    todayQuote.value = BOOK_QUOTES[getQuoteIndexForToday()]
-  }, 60 * 1000)
+  quoteRefreshTimer = setInterval(loadQuote, 60 * 1000)
 })
 onUnmounted(() => clearInterval(quoteRefreshTimer))
 </script>
@@ -217,8 +225,15 @@ onUnmounted(() => clearInterval(quoteRefreshTimer))
             <div><p class="eyebrow">TODAY'S QUOTE</p><h2 id="quote-title">오늘의 명언</h2></div>
           </div>
           <blockquote class="book-quote">
-            <p>“{{ todayQuote.quote }}”</p>
-            <footer>{{ todayQuote.author }}, <cite>『{{ todayQuote.title }}』</cite></footer>
+            <p v-if="isQuoteLoading" class="quote-state">명언을 불러오는 중…</p>
+            <template v-else-if="quoteError">
+              <p class="quote-state error">{{ quoteError }}</p>
+              <button type="button" class="quote-retry" @click="loadQuote">다시 시도</button>
+            </template>
+            <template v-else-if="todayQuote">
+              <p>“{{ todayQuote.message }}”</p>
+              <footer>{{ todayQuote.author }}<span v-if="todayQuote.authorProfile" class="author-profile"> · {{ todayQuote.authorProfile }}</span></footer>
+            </template>
           </blockquote>
         </section>
       </div>
@@ -369,8 +384,11 @@ onUnmounted(() => clearInterval(quoteRefreshTimer))
 .quote-panel { display: flex; flex-direction: column; justify-content: center; }
 .book-quote { display: grid; justify-items: center; gap: 14px; margin: 10px 0 0; padding: 8px 6px; text-align: center; }
 .book-quote p { max-width: 480px; margin: 0; color: var(--ink); font-size: 1.05rem; font-style: italic; line-height: 1.7; word-break: keep-all; overflow-wrap: break-word; white-space: pre-line; }
-.book-quote footer { color: var(--muted); font-size: .8rem; }
-.book-quote cite { color: var(--blue-700); font-style: normal; font-weight: 600; }
+.book-quote footer { color: var(--ink); font-size: .8rem; font-weight: 600; }
+.book-quote .author-profile { color: var(--muted); font-weight: 400; }
+.quote-state { min-height: 60px; color: var(--muted); font-size: .9rem; }
+.quote-state.error { color: #b3453d; }
+.quote-retry { padding: 8px 16px; border: 0; border-radius: 999px; color: #fff; background: var(--blue-700); font-size: .78rem; font-weight: 600; }
 .side-stack { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 20px; }
 .weather-panel, .stock-panel { padding: 26px; }
 .compact-heading { align-items: center; }
