@@ -218,7 +218,7 @@ onUnmounted(() => clearInterval(quoteRefreshTimer))
           </div>
           <blockquote class="book-quote">
             <p>“{{ todayQuote.quote }}”</p>
-            <footer>— {{ todayQuote.author }}, <cite>『{{ todayQuote.title }}』</cite></footer>
+            <footer>{{ todayQuote.author }}, <cite>『{{ todayQuote.title }}』</cite></footer>
           </blockquote>
         </section>
       </div>
